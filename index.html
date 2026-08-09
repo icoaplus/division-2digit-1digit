@@ -114,12 +114,12 @@ path,line{stroke:#111;stroke-linecap:round;stroke-linejoin:round}
       <h1 class="title">◆問題</h1>
       <div class="problem">
         <div class="group">
-          <input id="dividend" class="number" type="number" value="72" min="10" max="99">
+          <input id="dividend" class="number" type="text" value="72" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off">
           <div class="cap">わられる数</div>
         </div>
         <div class="div">÷</div>
         <div class="group">
-          <input id="divisor" class="number" type="number" value="3" min="2" max="9">
+          <input id="divisor" class="number" type="text" value="3" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
           <div class="cap">わる数</div>
         </div>
         <button id="reset" class="reset">リセット</button>
@@ -204,25 +204,37 @@ function split2(n){ return n<10?["",String(n)]:[String(Math.floor(n/10)),String(
 
 function makeModel(a,b){
   const tens=Math.floor(a/10), ones=a%10;
+
   if(tens>=b){
     const q1=Math.floor(tens/b), p1=q1*b, r1=tens-p1;
     const current=r1*10+ones, q2=Math.floor(current/b), p2=q2*b, rem=current-p2;
-    return {a,b,tens,ones,q1,p1,r1,current,q2,p2,rem,steps:[
-      ["たてる",`${b}のだんで ${tens} にいちばん近い数は ${p1}。${q1}をたてます。`],
-      ["かける",`${b}×${q1}＝${p1}`],
-      ["ひく",`${tens}−${p1}＝${r1}`],
-      ["おろす",`一の位の ${ones} をおろして ${current} にします。`],
-      ["たてる",`${b}のだんで ${current} にいちばん近い数は ${p2}。${q2}をたてます。`],
-      ["かける",`${b}×${q2}＝${p2}`],
-      ["ひく",`${current}−${p2}＝${rem}`]
-    ]};
+
+    return {
+      mode:"two",
+      a,b,tens,ones,q1,p1,r1,current,q2,p2,rem,
+      steps:[
+        ["たてる",`${b}のだんで ${tens} にいちばん近い数は ${p1}。${q1}をたてます。`],
+        ["かける",`${b}×${q1}＝${p1}`],
+        ["ひく",`${tens}−${p1}＝${r1}`],
+        ["おろす",`一の位の ${ones} をおろして ${current} にします。`],
+        ["たてる",`${b}のだんで ${current} にいちばん近い数は ${p2}。${q2}をたてます。`],
+        ["かける",`${b}×${q2}＝${p2}`],
+        ["ひく",`${current}−${p2}＝${rem}`]
+      ]
+    };
   }
+
   const q=Math.floor(a/b), p=q*b, rem=a-p;
-  return {a,b,tens,ones,q,p,rem,steps:[
-    ["たてる",`${a}をまとめて見て、${q}をたてます。`],
-    ["かける",`${b}×${q}＝${p}`],
-    ["ひく",`${a}−${p}＝${rem}`]
-  ]};
+
+  return {
+    mode:"whole",
+    a,b,tens,ones,q,p,rem,
+    steps:[
+      ["たてる",`${tens} は ${b} より小さいので、${a} をまとめて見ます。${q}をたてます。`],
+      ["かける",`${b}×${q}＝${p}`],
+      ["ひく",`${a}−${p}＝${rem}`]
+    ]
+  };
 }
 function text(id,v){$(id).textContent=v??""}
 function vis(id,v){$(id).setAttribute("visibility",v?"visible":"hidden")}
@@ -247,14 +259,79 @@ function clearBoard(){
 }
 function renderBoard(){
   clearBoard();
-  text("dvs",m.b);text("n1",m.tens);text("n2",m.ones);
-  if(m.steps.length===7){
-    if(step>=0){text("q1",m.q1);text("q2",m.q2);vis("bgQ",true)}
-    if(step>=1){text("p1",m.p1);vis("bgP1",true);vis("line1",true)}
-    if(step>=2){text("r1",m.r1);vis("bgR1",true)}
-    if(step>=3){const x=split2(m.current);text("b1",x[0]);text("b2",x[1]);vis("bgB",true);vis("midLine",true)}
-    if(step>=5){const x=split2(m.p2);text("p21",x[0]);text("p22",x[1]);vis("bgP2",true);vis("line2",true)}
-    if(step>=6){if(m.rem<10)text("f2",m.rem);else{const x=split2(m.rem);text("f1",x[0]);text("f2",x[1])}vis("bgF",true)}
+
+  text("dvs",m.b);
+  text("n1",m.tens);
+  text("n2",m.ones);
+
+  if(m.mode==="two"){
+    if(step>=0){
+      text("q1",m.q1);
+      vis("bgQ",true);
+    }
+    if(step>=1){
+      text("p1",m.p1);
+      vis("bgP1",true);
+      vis("line1",true);
+    }
+    if(step>=2){
+      text("r1",m.r1);
+      vis("bgR1",true);
+    }
+    if(step>=3){
+      const x=split2(m.current);
+      text("b1",x[0]);
+      text("b2",x[1]);
+      vis("bgB",true);
+      vis("midLine",true);
+    }
+    if(step>=4){
+      text("q2",m.q2);
+      vis("bgQ",true);
+    }
+    if(step>=5){
+      const x=split2(m.p2);
+      text("p21",x[0]);
+      text("p22",x[1]);
+      vis("bgP2",true);
+      vis("line2",true);
+    }
+    if(step>=6){
+      if(m.rem<10){
+        text("f2",m.rem);
+      }else{
+        const x=split2(m.rem);
+        text("f1",x[0]);
+        text("f2",x[1]);
+      }
+      vis("bgF",true);
+    }
+    return;
+  }
+
+  // 十の位だけでは割れない場合（例：24÷6）
+  if(step>=0){
+    const qParts=split2(m.q);
+    text("q1",qParts[0]);
+    text("q2",qParts[1]);
+    vis("bgQ",true);
+  }
+  if(step>=1){
+    const pParts=split2(m.p);
+    text("p21",pParts[0]);
+    text("p22",pParts[1]);
+    vis("bgP2",true);
+    vis("line2",true);
+  }
+  if(step>=2){
+    if(m.rem<10){
+      text("f2",m.rem);
+    }else{
+      const rParts=split2(m.rem);
+      text("f1",rParts[0]);
+      text("f2",rParts[1]);
+    }
+    vis("bgF",true);
   }
 }
 function renderCurrent(){
@@ -269,15 +346,72 @@ function render(){
   renderSteps();renderCurrent();renderBoard();
   $("back").disabled=step<=0;$("next").disabled=step>=m.steps.length-1;
 }
-function build(){
-  const a=Number($("dividend").value), b=Number($("divisor").value);
-  if(!Number.isInteger(a)||a<10||a>99||!Number.isInteger(b)||b<2||b>9)return;
-  m=makeModel(a,b);step=0;render();
+function cleanDigits(el,maxLen){
+  el.value=el.value.replace(/[^0-9]/g,"").slice(0,maxLen);
 }
-$("reset").onclick=()=>{$("dividend").value=72;$("divisor").value=3;build()};
-$("back").onclick=()=>{if(step>0){step--;render()}};
-$("next").onclick=()=>{if(step<m.steps.length-1){step++;render()}};
-["dividend","divisor"].forEach(id=>{$(id).addEventListener("change",build)});
+
+function build(){
+  const a=parseInt($("dividend").value,10);
+  const b=parseInt($("divisor").value,10);
+
+  if(!Number.isInteger(a)||a<10||a>99){
+    alert("わられる数は 10〜99 の2けたを入れてください。");
+    $("dividend").focus();
+    return false;
+  }
+  if(!Number.isInteger(b)||b<2||b>9){
+    alert("わる数は 2〜9 を入れてください。");
+    $("divisor").focus();
+    return false;
+  }
+
+  m=makeModel(a,b);
+  step=0;
+  render();
+  return true;
+}
+
+$("reset").onclick=()=>{
+  $("dividend").value="72";
+  $("divisor").value="3";
+  build();
+};
+
+$("back").onclick=()=>{
+  if(step>0){
+    step--;
+    render();
+  }
+};
+
+$("next").onclick=()=>{
+  if(step<m.steps.length-1){
+    step++;
+    render();
+  }
+};
+
+$("dividend").addEventListener("input",e=>cleanDigits(e.target,2));
+$("divisor").addEventListener("input",e=>cleanDigits(e.target,1));
+
+$("dividend").addEventListener("change",build);
+$("divisor").addEventListener("change",build);
+
+$("dividend").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){
+    e.preventDefault();
+    build();
+    $("dividend").blur();
+  }
+});
+$("divisor").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){
+    e.preventDefault();
+    build();
+    $("divisor").blur();
+  }
+});
+
 build();
 </script>
 </body>
