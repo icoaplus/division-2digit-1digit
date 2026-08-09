@@ -189,6 +189,18 @@ path,line{stroke:#111;stroke-linecap:round;stroke-linejoin:round}
   border-color:#5f9ed2;
 }
 
+
+.number{
+  touch-action:manipulation;
+  -webkit-user-select:text;
+  user-select:text;
+  caret-color:#111;
+}
+.number:focus{
+  border-color:#5f9ed2;
+  outline:4px solid rgba(95,158,210,.22);
+}
+
 </style>
 </head>
 <body>
@@ -431,8 +443,32 @@ function renderCurrent(){
   $("desc").textContent=s[1];
 }
 function render(){
-  renderSteps();renderCurrent();renderBoard();
-  $("back").disabled=step<=0;$("next").disabled=step>=m.steps.length-1;
+  renderSteps();
+
+  if(step < 0){
+    $("cNo").textContent = "—";
+    $("cIcon").removeAttribute("src");
+    $("cBadge").textContent = "スタート";
+    $("cBadge").className = "badge current-badge";
+    $("cBadge").style.background = "#ffffff";
+    $("desc").textContent = "数字を入力して「スタート」を押してください。";
+
+    clearBoard();
+    text("dvs",m.b);
+    text("n1",m.tens);
+    text("n2",m.ones);
+
+    $("back").disabled = true;
+    $("next").disabled = !started;
+    return;
+  }
+
+  $("cBadge").style.background = "";
+  renderCurrent();
+  renderBoard();
+
+  $("back").disabled = step <= 0;
+  $("next").disabled = step >= m.steps.length - 1;
 }
 function cleanDigits(el,maxLen){
   el.value=el.value.replace(/[^0-9]/g,"").slice(0,maxLen);
@@ -454,25 +490,47 @@ function build(){
   }
 
   m=makeModel(a,b);
-  step=0;
+  step=-1;
   render();
   return true;
 }
 
+$("start").onclick=()=>{
+  if(build()){
+    started=true;
+    step=-1;
+    render();
+  }
+};
+
 $("reset").onclick=()=>{
-  $("dividend").value="72";
-  $("divisor").value="3";
-  build();
+  const a=parseInt($("dividend").value,10);
+  const b=parseInt($("divisor").value,10);
+  if(Number.isInteger(a) && a>=10 && a<=99 && Number.isInteger(b) && b>=2 && b<=9){
+    m=makeModel(a,b);
+    started=false;
+    step=-1;
+    render();
+  }
 };
 
 $("back").onclick=()=>{
   if(step>0){
     step--;
     render();
+  }else if(step===0){
+    step=-1;
+    render();
   }
 };
 
 $("next").onclick=()=>{
+  if(!started) return;
+  if(step < 0){
+    step=0;
+    render();
+    return;
+  }
   if(step<m.steps.length-1){
     step++;
     render();
@@ -482,20 +540,17 @@ $("next").onclick=()=>{
 $("dividend").addEventListener("input",e=>cleanDigits(e.target,2));
 $("divisor").addEventListener("input",e=>cleanDigits(e.target,1));
 
-$("dividend").addEventListener("change",build);
-$("divisor").addEventListener("change",build);
+
 
 $("dividend").addEventListener("keydown",e=>{
   if(e.key==="Enter"){
     e.preventDefault();
-    build();
     $("dividend").blur();
   }
 });
 $("divisor").addEventListener("keydown",e=>{
   if(e.key==="Enter"){
     e.preventDefault();
-    build();
     $("divisor").blur();
   }
 });
@@ -525,12 +580,14 @@ function closeKeypad(){
   $("divisor").classList.remove("keypad-active");
 }
 
-$("dividend").addEventListener("focus",()=>setKeypadTarget($("dividend")));
-$("divisor").addEventListener("focus",()=>setKeypadTarget($("divisor")));
-$("dividend").addEventListener("click",()=>setKeypadTarget($("dividend")));
-$("divisor").addEventListener("click",()=>setKeypadTarget($("divisor")));
-
-$("openKeypad").addEventListener("click", openKeypad);
+$("dividend").addEventListener("click",()=>{
+  setKeypadTarget($("dividend"));
+  openKeypad();
+});
+$("divisor").addEventListener("click",()=>{
+  setKeypadTarget($("divisor"));
+  openKeypad();
+});
 
 document.querySelectorAll(".keypad-key[data-key]").forEach(btn=>{
   btn.addEventListener("click",()=>{
@@ -558,7 +615,7 @@ document.querySelectorAll(".keypad-key[data-action]").forEach(btn=>{
 });
 
 $("keypadOk").addEventListener("click",()=>{
-  if(build()) closeKeypad();
+  closeKeypad();
 });
 $("keypadClose").addEventListener("click", closeKeypad);
 
