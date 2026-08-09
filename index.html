@@ -103,6 +103,92 @@ path,line{stroke:#111;stroke-linecap:round;stroke-linejoin:round}
     font-size:28px;font-weight:1000;line-height:1.5
   }
 }
+
+.keypad-open{
+  width:92px;
+  height:42px;
+  margin-top:12px;
+  border:3px solid var(--line);
+  border-radius:8px;
+  background:#fff3b7;
+  font-size:15px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.keypad-overlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(20,35,50,.18);
+  z-index:9999;
+}
+.keypad-overlay.show{display:flex;}
+
+.keypad{
+  width:min(360px,88vw);
+  background:#fff;
+  border:3px solid #8298aa;
+  border-radius:24px;
+  padding:14px;
+  box-shadow:0 14px 40px rgba(0,0,0,.18);
+}
+.keypad-title{
+  text-align:center;
+  font-size:19px;
+  font-weight:1000;
+  color:#294762;
+  margin-bottom:10px;
+}
+.keypad-target{
+  text-align:center;
+  font-size:28px;
+  font-weight:1000;
+  border:2px solid #b8d9f2;
+  border-radius:12px;
+  padding:8px;
+  margin-bottom:10px;
+  background:#f8fcff;
+}
+.keypad-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px;
+}
+.keypad-key{
+  height:56px;
+  border:2px solid #9fb5c7;
+  border-radius:12px;
+  background:#eef7fd;
+  font-size:26px;
+  font-weight:1000;
+  cursor:pointer;
+}
+.keypad-key.action{
+  background:#f3f3f3;
+  font-size:17px;
+}
+.keypad-key.ok{
+  background:#cfe8c8;
+  font-size:18px;
+}
+.keypad-close{
+  width:100%;
+  height:44px;
+  margin-top:10px;
+  border:2px solid #9fb5c7;
+  border-radius:12px;
+  background:#f1f4f7;
+  font-size:17px;
+  font-weight:900;
+}
+.number.keypad-active{
+  outline:4px solid rgba(95,158,210,.25);
+  border-color:#5f9ed2;
+}
+
 </style>
 </head>
 <body>
@@ -412,7 +498,97 @@ $("divisor").addEventListener("keydown",e=>{
   }
 });
 
+
+let keypadTargetInput = $("dividend");
+
+function setKeypadTarget(input){
+  keypadTargetInput = input;
+  $("dividend").classList.remove("keypad-active");
+  $("divisor").classList.remove("keypad-active");
+  input.classList.add("keypad-active");
+  $("keypadTarget").textContent = input.value || "0";
+}
+
+function openKeypad(){
+  setKeypadTarget(document.activeElement === $("divisor") ? $("divisor") : 
+                  document.activeElement === $("dividend") ? $("dividend") : keypadTargetInput);
+  $("keypadOverlay").classList.add("show");
+  $("keypadOverlay").setAttribute("aria-hidden","false");
+}
+
+function closeKeypad(){
+  $("keypadOverlay").classList.remove("show");
+  $("keypadOverlay").setAttribute("aria-hidden","true");
+  $("dividend").classList.remove("keypad-active");
+  $("divisor").classList.remove("keypad-active");
+}
+
+$("dividend").addEventListener("focus",()=>setKeypadTarget($("dividend")));
+$("divisor").addEventListener("focus",()=>setKeypadTarget($("divisor")));
+$("dividend").addEventListener("click",()=>setKeypadTarget($("dividend")));
+$("divisor").addEventListener("click",()=>setKeypadTarget($("divisor")));
+
+$("openKeypad").addEventListener("click", openKeypad);
+
+document.querySelectorAll(".keypad-key[data-key]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const maxLen = keypadTargetInput === $("dividend") ? 2 : 1;
+    let value = (keypadTargetInput.value || "").replace(/[^0-9]/g,"");
+    if(value.length < maxLen){
+      value += btn.dataset.key;
+      keypadTargetInput.value = value;
+      $("keypadTarget").textContent = value || "0";
+    }
+  });
+});
+
+document.querySelectorAll(".keypad-key[data-action]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    let value = keypadTargetInput.value || "";
+    if(btn.dataset.action === "clear"){
+      value = "";
+    }else if(btn.dataset.action === "backspace"){
+      value = value.slice(0,-1);
+    }
+    keypadTargetInput.value = value;
+    $("keypadTarget").textContent = value || "0";
+  });
+});
+
+$("keypadOk").addEventListener("click",()=>{
+  if(build()) closeKeypad();
+});
+$("keypadClose").addEventListener("click", closeKeypad);
+
+$("keypadOverlay").addEventListener("click",(e)=>{
+  if(e.target === $("keypadOverlay")) closeKeypad();
+});
+
 build();
 </script>
+
+<div id="keypadOverlay" class="keypad-overlay" aria-hidden="true">
+  <div class="keypad" role="dialog" aria-modal="true" aria-label="数字入力">
+    <div class="keypad-title">数字を入力</div>
+    <div id="keypadTarget" class="keypad-target">72</div>
+    <div class="keypad-grid">
+      <button class="keypad-key" data-key="1">1</button>
+      <button class="keypad-key" data-key="2">2</button>
+      <button class="keypad-key" data-key="3">3</button>
+      <button class="keypad-key" data-key="4">4</button>
+      <button class="keypad-key" data-key="5">5</button>
+      <button class="keypad-key" data-key="6">6</button>
+      <button class="keypad-key" data-key="7">7</button>
+      <button class="keypad-key" data-key="8">8</button>
+      <button class="keypad-key" data-key="9">9</button>
+      <button class="keypad-key action" data-action="clear">クリア</button>
+      <button class="keypad-key" data-key="0">0</button>
+      <button class="keypad-key action" data-action="backspace">⌫</button>
+    </div>
+    <button id="keypadOk" class="keypad-key ok" style="width:100%;margin-top:10px;">決定</button>
+    <button id="keypadClose" class="keypad-close" type="button">閉じる</button>
+  </div>
+</div>
+
 </body>
 </html>
