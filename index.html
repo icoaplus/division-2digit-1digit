@@ -31,7 +31,7 @@ body{padding:8px}
 }
 .title{font-size:26px;font-weight:1000;color:#000;margin:0 0 8px}
 .problem{
-  display:grid;grid-template-columns:110px 34px 110px 70px 125px 125px;
+  display:grid;grid-template-columns:110px 34px 110px 70px 125px 125px 125px;
   gap:12px;align-items:start;width:max-content;
 }
 .group{display:grid;gap:5px}
@@ -201,6 +201,17 @@ path,line{stroke:#111;stroke-linecap:round;stroke-linejoin:round}
   outline:4px solid rgba(95,158,210,.22);
 }
 
+
+@media (min-width:1200px) and (orientation:landscape){
+  .app{
+    max-width:1600px;
+    margin:0 auto;
+  }
+  .body{
+    grid-template-columns:36% 25% 39%;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -221,6 +232,7 @@ path,line{stroke:#111;stroke-linecap:round;stroke-linejoin:round}
           <div class="cap">わる数</div>
         </div>
         <button id="reset" class="reset">リセット</button>
+<button id="start" class="nav start-btn">スタート</button>
         <button id="back" class="nav">←もどる</button>
         <button id="next" class="nav">つぎへ➡</button>
       </div>
@@ -298,7 +310,7 @@ Object.values(ICONS).forEach(src=>{ const im=new Image(); im.src=src; });
 
 const CLS={"たてる":"tateru","かける":"kakeru","ひく":"hiku","おろす":"orosu"};
 const $=id=>document.getElementById(id);
-let m=null, step=0;
+let m=null, step=-1, started=false;
 
 function split2(n){ return n<10?["",String(n)]:[String(Math.floor(n/10)),String(n%10)]; }
 
@@ -467,7 +479,7 @@ function render(){
   renderCurrent();
   renderBoard();
 
-  $("back").disabled = step <= 0;
+  $("back").disabled = step < 0;
   $("next").disabled = step >= m.steps.length - 1;
 }
 function cleanDigits(el,maxLen){
@@ -537,8 +549,23 @@ $("next").onclick=()=>{
   }
 };
 
-$("dividend").addEventListener("input",e=>cleanDigits(e.target,2));
-$("divisor").addEventListener("input",e=>cleanDigits(e.target,1));
+
+function markInputChanged(){
+  started=false;
+  const a=parseInt($("dividend").value,10);
+  const b=parseInt($("divisor").value,10);
+  if(Number.isInteger(a) && a>=10 && a<=99 && Number.isInteger(b) && b>=2 && b<=9){
+    m=makeModel(a,b);
+    step=-1;
+    render();
+  }else{
+    $("next").disabled=true;
+    $("back").disabled=true;
+  }
+}
+
+$("dividend").addEventListener("input",e=>{cleanDigits(e.target,2);markInputChanged();});
+$("divisor").addEventListener("input",e=>{cleanDigits(e.target,1);markInputChanged();});
 
 
 
