@@ -299,6 +299,29 @@ path,line{stroke:#111;stroke-linecap:round;stroke-linejoin:round}
   </div>
 </div>
 
+<div id="keypadOverlay" class="keypad-overlay" aria-hidden="true">
+  <div class="keypad" role="dialog" aria-modal="true" aria-label="数字入力">
+    <div class="keypad-title">数字を入力</div>
+    <div id="keypadTarget" class="keypad-target">72</div>
+    <div class="keypad-grid">
+      <button class="keypad-key" data-key="1">1</button>
+      <button class="keypad-key" data-key="2">2</button>
+      <button class="keypad-key" data-key="3">3</button>
+      <button class="keypad-key" data-key="4">4</button>
+      <button class="keypad-key" data-key="5">5</button>
+      <button class="keypad-key" data-key="6">6</button>
+      <button class="keypad-key" data-key="7">7</button>
+      <button class="keypad-key" data-key="8">8</button>
+      <button class="keypad-key" data-key="9">9</button>
+      <button class="keypad-key action" data-action="clear">クリア</button>
+      <button class="keypad-key" data-key="0">0</button>
+      <button class="keypad-key action" data-action="backspace">←</button>
+    </div>
+    <button id="keypadOk" class="keypad-key ok" style="width:100%;margin-top:10px;">決定</button>
+    <button id="keypadClose" class="keypad-close" type="button">閉じる</button>
+  </div>
+</div>
+
 <script>
 const ICONS={
   'たてる':'data:image/webp;base64,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',
@@ -617,7 +640,8 @@ $("divisor").addEventListener("click",()=>{
 });
 
 document.querySelectorAll(".keypad-key[data-key]").forEach(btn=>{
-  btn.addEventListener("click",()=>{
+  btn.addEventListener("click",(e)=>{
+    e.preventDefault();
     const maxLen = keypadTargetInput === $("dividend") ? 2 : 1;
     let value = (keypadTargetInput.value || "").replace(/[^0-9]/g,"");
     if(value.length < maxLen){
@@ -629,7 +653,8 @@ document.querySelectorAll(".keypad-key[data-key]").forEach(btn=>{
 });
 
 document.querySelectorAll(".keypad-key[data-action]").forEach(btn=>{
-  btn.addEventListener("click",()=>{
+  btn.addEventListener("click",(e)=>{
+    e.preventDefault();
     let value = keypadTargetInput.value || "";
     if(btn.dataset.action === "clear"){
       value = "";
@@ -642,6 +667,7 @@ document.querySelectorAll(".keypad-key[data-action]").forEach(btn=>{
 });
 
 $("keypadOk").addEventListener("click",()=>{
+  markInputChanged();
   closeKeypad();
 });
 $("keypadClose").addEventListener("click", closeKeypad);
@@ -652,29 +678,6 @@ $("keypadOverlay").addEventListener("click",(e)=>{
 
 build();
 </script>
-
-<div id="keypadOverlay" class="keypad-overlay" aria-hidden="true">
-  <div class="keypad" role="dialog" aria-modal="true" aria-label="数字入力">
-    <div class="keypad-title">数字を入力</div>
-    <div id="keypadTarget" class="keypad-target">72</div>
-    <div class="keypad-grid">
-      <button class="keypad-key" data-key="1">1</button>
-      <button class="keypad-key" data-key="2">2</button>
-      <button class="keypad-key" data-key="3">3</button>
-      <button class="keypad-key" data-key="4">4</button>
-      <button class="keypad-key" data-key="5">5</button>
-      <button class="keypad-key" data-key="6">6</button>
-      <button class="keypad-key" data-key="7">7</button>
-      <button class="keypad-key" data-key="8">8</button>
-      <button class="keypad-key" data-key="9">9</button>
-      <button class="keypad-key action" data-action="clear">クリア</button>
-      <button class="keypad-key" data-key="0">0</button>
-      <button class="keypad-key action" data-action="backspace">⌫</button>
-    </div>
-    <button id="keypadOk" class="keypad-key ok" style="width:100%;margin-top:10px;">決定</button>
-    <button id="keypadClose" class="keypad-close" type="button">閉じる</button>
-  </div>
-</div>
 
 </body>
 </html>
